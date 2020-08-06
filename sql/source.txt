@@ -1,1 +1,1 @@
-select name from class where id<>123;
+select name from class where id<>123 and name="asdsf adsf sssls ss";
