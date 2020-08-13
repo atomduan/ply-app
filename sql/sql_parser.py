@@ -8,6 +8,8 @@ import sql_lexer
 from sql_lexer import *
 tokens = sql_lexer.tokens
 
+symbols={"LALALAL":[123,1234]}
+
 precedence = (
     ('left', '+', '-'),
     ('left', '*', '/'),
@@ -16,7 +18,7 @@ precedence = (
 
 def p_sql(t):
     ''' sql : statement_list '''
-    print('PARSE ONE SQL ......')
+    symbols[123] = "ADD TOP ONE"
     pass
 
 def p_sql_empty(t):
@@ -176,3 +178,4 @@ if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
     yacc.parse(sys.stdin.read(),lxr,debug=False)
+    print(symbols)
