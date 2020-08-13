@@ -1,11 +1,12 @@
 #!/usr/local/bin/python3
 
 import sys
-import lexer
+import lex
 import yacc
+import sql_lexer
 
-# Get the token map
-tokens = lexer.tokens
+from sql_lexer import *
+tokens = sql_lexer.tokens
 
 precedence = (
     ('left', '+', '-'),
@@ -15,13 +16,14 @@ precedence = (
 
 def p_sql(t):
     'sql : statement_list'
+    print('PARSE ONE SQL ......')
     pass
 def p_sql_empty(t):
     'sql : '
     pass
 
 def p_statement_list_1(t):
-    ''' statement_list : statement ';' '''
+    ''' statement_list : statement COMMA '''
     pass
 def p_statement_list_2(t):
     'statement_list : statement_list statement'
@@ -151,5 +153,7 @@ def p_like_literal_2(t):
 def p_error(t):
     print("Whoa. We're hosed")
 
-yacc.yacc()
-#yacc.yacc(method='LALR',write_tables=False,debug=False)
+if __name__ == '__main__':
+    lxr = lex.lex()
+    yacc.yacc(debug=True)
+    yacc.parse(sys.stdin.read(),lxr,debug=False)

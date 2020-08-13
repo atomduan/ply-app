@@ -6,7 +6,7 @@ import sys
 import lex
 
 tokens = (
-    'COMPARISON', 'INTNUM', 'STRING',
+    'COMPARISON', 'INTNUM', 'STRING', 'COMMA',
     'SELECT', 'FROM', 'WHERE', 'LIKE', 'OR', 'AND', 'NOT',
 )
 
@@ -15,6 +15,8 @@ states = (
     ('strsc','exclusive'),
 )
 
+#t_OTHER         = r'.'
+t_COMMA         = r';'
 t_ignore        = ' \t'
 t_strsc_ignore  = r''
 
