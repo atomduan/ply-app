@@ -15,10 +15,10 @@ states = (
     ('strsc','exclusive'),
 )
 
-#t_OTHER         = r'.'
+#t_OTHER         = r'.' #TODO need to return literal char
 t_COMMA         = r';'
-t_ignore        = ' \t'
 t_strsc_ignore  = r''
+t_ignore        = ' \t'
 
 #string content
 def t_begin_strsc(t):
