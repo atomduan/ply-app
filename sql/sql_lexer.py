@@ -3,7 +3,7 @@
 #https://www.dabeaz.com/ply/ply.html#ply_nn21
 
 import sys
-import lex
+import ply.lex as lex
 
 tokens = (
     'COMPARISON', 'INTNUM', 'STRING', 'COMMA',

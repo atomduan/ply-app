@@ -1,8 +1,8 @@
 #!/usr/local/bin/python3
 
 import sys
-import lex
-import yacc
+import ply.lex as lex
+import ply.yacc as yacc
 import sql_lexer
 
 from sql_lexer import *
