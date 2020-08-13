@@ -3,6 +3,7 @@
 __pycache__
 *.out
 *.dif
+*.swp
 *~
 /dist
 /build

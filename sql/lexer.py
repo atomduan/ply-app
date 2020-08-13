@@ -6,38 +6,40 @@ import sys
 import lex
 
 tokens = (
-    'COMPARISON',
-    'INTNUM',
-    'STRING',
-    'OTHER',
-    'SELECT',
-    'FROM',
-    'WHERE',
-    'LIKE',
-    'AS',
+    'COMPARISON', 'INTNUM', 'STRING',
+    'SELECT', 'FROM', 'WHERE', 'LIKE', 'OR', 'AND', 'NOT',
 )
 
+#start condition
 states = (
     ('strsc','exclusive'),
 )
 
-t_OTHER         = r'.'
 t_ignore        = ' \t'
 t_strsc_ignore  = r''
 
+#string content
 def t_begin_strsc(t):
     r'\"'
     t.lexer.begin('strsc')
-
 def t_strsc_STRCTNT(t):
     r'[^\"]+'
     t.type = 'STRING'
+    t.lexer.lineno += t.value.count('\n')
     return t
-
 def t_strsc_end(t):
     r'\"'
     t.lexer.begin('INITIAL')
 
+#comment content
+def t_comment(t):
+    r'/\*(.|\n)*?\*/'
+    t.lexer.lineno += t.value.count('\n')
+def t_preprocessor(t):
+    r'\#(.)*?\n'
+    t.lexer.lineno += 1
+
+#token recognized 
 def t_SELECT(t):
     r'(?i)SELECT'
     t.type = 'SELECT'
@@ -58,9 +60,19 @@ def t_LIKE(t):
     t.type = 'LIKE'
     return t
 
-def t_AS(t):
-    r'(?i)AS'
-    t.type = 'AS'
+def t_OR(t):
+    r'(?i)OR'
+    t.type = 'OR'
+    return t
+
+def t_AND(t):
+    r'(?i)AND'
+    t.type = 'AND'
+    return t
+
+def t_NOT(t):
+    r'(?i)NOT'
+    t.type = 'NOT'
     return t
 
 def t_COMPARISON(t):
@@ -79,7 +91,7 @@ def t_STRING(t):
     t.type = 'STRING'
     return t
 
-def t_ANY_newline(t):
+def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 

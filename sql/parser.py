@@ -1,104 +1,155 @@
 #!/usr/local/bin/python3
 
 import sys
-
-tokens = (
-    'COMPARISON',
-    'INTNUM',
-    'STRING',
-    'OTHER',
-    'SELECT',
-    'FROM',
-    'WHERE',
-    'LIKE',
-    'AS',
-)
-
-# Lex Rules
-states = (
-    ('strsc','exclusive'),
-)
-
-t_ignore        = ' \t'
-t_strsc_ignore  = r''
-t_OTHER         = r'.'
-
-def t_begin_strsc(t):
-    r'\"'
-    t.lexer.begin('strsc')
-
-def t_strsc_STRCTNT(t):
-    r'[^\"]+'
-    t.type = 'STRING'
-    return t
-
-def t_strsc_end(t):
-    r'\"'
-    t.lexer.begin('INITIAL')
-
-def t_SELECT(t):
-    r'(?i)SELECT'
-    t.type = 'SELECT'
-    return t
-
-def t_FROM(t):
-    r'(?i)FROM'
-    t.type = 'FROM'
-    return t
-
-def t_WHERE(t):
-    r'(?i)WHERE'
-    t.type = 'WHERE'
-    return t
-
-def t_LIKE(t):
-    r'(?i)LIKE'
-    t.type = 'LIKE'
-    return t
-
-def t_AS(t):
-    r'(?i)AS'
-    t.type = 'AS'
-    return t
-
-def t_COMPARISON(t):
-    r'(=|<>|<|>|<=|>=)'
-    t.type = 'COMPARISON'
-    return t
-
-def t_INTNUM(t):
-    r'\d+'
-    t.value = int(t.value)    
-    t.type = 'INTNUM'
-    return t
-
-def t_STRING(t):
-    r'[a-zA-Z0-9_-]+'
-    t.type = 'STRING'
-    return t
-
-def t_ANY_newline(t):
-    r'\n+'
-    t.lexer.lineno += len(t.value)
-
-def t_ANY_error(t):
-    print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1)
-
-import lex
-lexer = lex.lex()
-
-# Parsing rules
-def p_sql(p):
-    "sql :"
-
-def p_error(p):
-    if p:
-        print("Syntax error at '%s'" % p.value)
-    else:
-        print("Syntax error at EOF")
-
+import lexer
 import yacc
-parser = yacc.yacc()
-data = sys.stdin.read()
-yacc.parse(data,lexer)
+
+# Get the token map
+tokens = lexer.tokens
+
+precedence = (
+    ('left', '+', '-'),
+    ('left', '*', '/'),
+    ('right', 'UMINUS'),
+)
+
+def p_sql(t):
+    'sql : statement_list'
+    pass
+def p_sql_empty(t):
+    'sql : '
+    pass
+
+def p_statement_list_1(t):
+    ''' statement_list : statement ';' '''
+    pass
+def p_statement_list_2(t):
+    'statement_list : statement_list statement'
+    pass
+
+def p_statement(t):
+    'statement : select_stmt'
+    pass
+
+def p_select_stmt(t):
+    'select_stmt : SELECT selection from_clause where_clause'
+    pass
+
+def p_selection_1(t):
+    'selection : scalar_exp_list'
+    pass
+def p_selection_2(t):
+    ''' selection : '*' '''
+    pass
+
+def p_scalar_exp_list_1(t):
+    'scalar_exp_list : scalar_exp'
+    pass
+def p_scalar_exp_list_2(t):
+    ''' scalar_exp_list : scalar_exp_list ',' scalar_exp '''
+    pass
+
+def p_from_clause(t):
+    'from_clause : FROM table_ref_list'
+    pass
+
+def p_where_clause(t):
+    'where_clause : WHERE search_condition'
+    pass
+def p_where_clause_empty(t):
+    'where_clause : '
+    pass
+
+def p_table_ref_list_1(t):
+    'table_ref_list : table_ref'
+    pass
+def p_table_ref_list_2(t):
+    ''' table_ref_list : table_ref_list ',' table_ref '''
+    pass
+
+def p_table_ref(t):
+    'table_ref : name_ref'
+    pass
+
+def p_search_condition_1(t):
+    'search_condition : search_condition OR search_condition'
+    pass 
+def p_search_condition_2(t):
+    'search_condition : search_condition AND search_condition'
+    pass 
+def p_search_condition_3(t):
+    ''' search_condition : '(' search_condition ')' '''
+    pass
+def p_search_condition_4(t):
+    'search_condition : predicate'
+    pass
+
+def p_predicate_1(t):
+    'predicate : comparison_predicate'
+    pass
+def p_predicate_2(t):
+    'predicate : like_predicate'
+    pass
+
+def p_comparison_predicate(t):
+    'comparison_predicate : scalar_exp COMPARISON scalar_exp'
+    pass
+
+def p_like_predicate_1(t):
+    'like_predicate : scalar_exp NOT LIKE like_literal'
+    pass
+def p_like_predicate_2(t):
+    'like_predicate : scalar_exp LIKE like_literal'
+    pass
+
+def p_scalar_exp_1(t):
+    ''' scalar_exp : scalar_exp '+' scalar_exp '''
+    pass
+def p_scalar_exp_2(t):
+    ''' scalar_exp : scalar_exp '-' scalar_exp '''
+    pass
+def p_scalar_exp_3(t):
+    ''' scalar_exp : scalar_exp '*' scalar_exp '''
+    pass
+def p_scalar_exp_4(t):
+    ''' scalar_exp : scalar_exp '/' scalar_exp '''
+    pass
+def p_scalar_exp_5(t):
+    ''' scalar_exp : '+' scalar_exp %prec UMINUS '''
+    pass
+def p_scalar_exp_6(t):
+    ''' scalar_exp : '-' scalar_exp %prec UMINUS '''
+    pass
+def p_scalar_exp_7(t):
+    ''' scalar_exp : '(' scalar_exp ')' '''
+    pass
+def p_scalar_exp_8(t):
+    'scalar_exp : scalar_unit'
+    pass
+
+def p_scalar_unit_1(t):
+    'scalar_unit : INTNUM'
+    pass
+def p_scalar_unit_2(t):
+    'scalar_unit : name_ref'
+    pass
+
+def p_name_ref_1(t):
+    'name_ref : STRING'
+    pass 
+def p_name_ref_2(t):
+    ''' name_ref : name_ref '.' STRING '''
+    pass
+
+def p_like_literal_1(t):
+    'like_literal : STRING'
+    pass
+def p_like_literal_2(t):
+    'like_literal : INTNUM'
+    pass
+
+def p_error(t):
+    print("Whoa. We're hosed")
+
+yacc.yacc()
+#yacc.yacc(method='LALR',write_tables=False,debug=False)
