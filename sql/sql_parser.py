@@ -12,18 +12,22 @@ tokens = sql_lexer.tokens
 # symbol table
 symbols={}
 
+# Normally, the first rule found in a yacc 
+# specification defines the starting grammar 
+# rule (top level rule). To change this, simply 
+# supply a start specifier in your file. 
+start = 'sql'
+
 def p_sql(p):
     '''sql : statement_list'''
     symbols['sql'] = {
             'statement_list' : sym_join('statement_list'),
             }
-    print("PARSE SUCCESS...")
     pass
 
 def p_sql_empty(p):
     '''sql :'''
     symbols['sql'] = {}
-    print("PARSE SUCCESS...")
     pass
 
 def p_statement_list_1(p):
