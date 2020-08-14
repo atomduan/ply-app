@@ -5,17 +5,33 @@
 import sys
 import ply.lex as lex
 
-tokens = (
-    'COMPARISON', 'INTNUM', 'STRING', 'COMMA',
-    'SELECT', 'FROM', 'WHERE', 'OR', 'AND',
-)
+last_line_pos = 0
+
+reserved = {
+    'select'    :   'SELECT',
+    'from'      :   'FROM',
+    'where'     :   'WHERE',
+    'or'        :   'OR',
+    'and'       :   'AND',
+}
+
+notation = {
+    ';'         :   'SEMI',
+    ','         :   'COMMA',
+    '='         :   'EQ',
+    '('         :   'LP',
+    ')'         :   'RP',
+}
+
+tokens = [
+    'ID', 'NUM', 'STR',
+] + list(reserved.values()) + list(notation.values())
 
 #start condition
 states = (
-    ('strsc','exclusive'),
+    ('strsc', 'exclusive'),
 )
 
-#t_OTHER         = r'.' #TODO need to return literal char
 t_COMMA         = r';'
 t_strsc_ignore  = r''
 t_ignore        = ' \t'
@@ -26,8 +42,9 @@ def t_begin_strsc(t):
     t.lexer.begin('strsc')
 def t_strsc_STRCTNT(t):
     r'[^\"]+'
-    t.type = 'STRING'
+    t.type = 'STR'
     t.lexer.lineno += t.value.count('\n')
+    t.lexer.linepos = t.lexer.lexpos + t.value.count('\n')
     return t
 def t_strsc_end(t):
     r'\"'
@@ -37,72 +54,41 @@ def t_strsc_end(t):
 def t_comment(t):
     r'/\*(.|\n)*?\*/'
     t.lexer.lineno += t.value.count('\n')
+    t.lexer.linepos = t.lexer.lexpos + t.value.count('\n')
+
 def t_preprocessor(t):
     r'\#(.)*?\n'
     t.lexer.lineno += 1
 
 #token recognized 
-def t_SELECT(t):
-    r'(?i)SELECT'
-    t.type = 'SELECT'
+def t_NOTATION(t):
+    r'(=|;|,|\(|\))'
+    t.type = notation.get(t.value.lower())
     return t
 
-def t_FROM(t):
-    r'(?i)FROM'
-    t.type = 'FROM'
-    return t
-
-def t_WHERE(t):
-    r'(?i)WHERE'
-    t.type = 'WHERE'
-    return t
-
-def t_LIKE(t):
-    r'(?i)LIKE'
-    t.type = 'LIKE'
-    return t
-
-def t_OR(t):
-    r'(?i)OR'
-    t.type = 'OR'
-    return t
-
-def t_AND(t):
-    r'(?i)AND'
-    t.type = 'AND'
-    return t
-
-def t_NOT(t):
-    r'(?i)NOT'
-    t.type = 'NOT'
-    return t
-
-def t_COMPARISON(t):
-    r'(=|<>|<|>|<=|>=)'
-    t.type = 'COMPARISON'
-    return t
-
-def t_INTNUM(t):
+def t_NUM(t):
     r'\d+'
     t.value = int(t.value)    
-    t.type = 'INTNUM'
+    t.type = 'NUM'
     return t
 
-def t_STRING(t):
-    r'[a-zA-Z0-9_-]+'
-    t.type = 'STRING'
+def t_ID(t):
+    r'[a-zA-Z0-9_]+'
+    t.type = reserved.get(t.value.lower(), 'ID')
     return t
 
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
+    t.lexer.linepos = t.lexer.lexpos + len(t.value)
 
 def t_ANY_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
 if __name__ == '__main__':
-    lexer = lex.lex()
+    import re
+    lexer = lex.lex(reflags=re.IGNORECASE)
     data = sys.stdin.read()
 
     lexer.input(data)
