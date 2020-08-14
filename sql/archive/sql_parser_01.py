@@ -39,6 +39,7 @@ def p_statement(t):
 
 def p_select_stmt(t):
     ''' select_stmt : SELECT selection from_clause where_clause '''
+    print(str(t))
     pass
 
 def p_selection_1(t):
@@ -82,15 +83,15 @@ def p_table_ref(t):
     pass
 
 def p_search_condition_1(t):
-    ''' search_condition : predicate OR predicate '''
+    ''' search_condition : search_condition OR search_condition '''
     pass 
 
 def p_search_condition_2(t):
-    ''' search_condition : predicate AND predicate '''
+    ''' search_condition : search_condition AND search_condition '''
     pass 
 
 def p_search_condition_3(t):
-    ''' search_condition : '(' predicate ')' '''
+    ''' search_condition : '(' search_condition ')' '''
     pass
 
 def p_search_condition_4(t):
@@ -101,8 +102,20 @@ def p_predicate_1(t):
     ''' predicate : comparison_predicate '''
     pass
 
+def p_predicate_2(t):
+    ''' predicate : like_predicate '''
+    pass
+
 def p_comparison_predicate(t):
     ''' comparison_predicate : scalar_exp COMPARISON scalar_exp '''
+    pass
+
+def p_like_predicate_1(t):
+    ''' like_predicate : scalar_exp NOT LIKE like_literal '''
+    pass
+
+def p_like_predicate_2(t):
+    ''' like_predicate : scalar_exp LIKE like_literal '''
     pass
 
 def p_scalar_exp_1(t):
@@ -152,11 +165,19 @@ def p_name_ref_2(t):
     ''' name_ref : name_ref '.' STRING '''
     pass
 
+def p_like_literal_1(t):
+    ''' like_literal : STRING '''
+    pass
+
+def p_like_literal_2(t):
+    ''' like_literal : INTNUM '''
+    pass
+
 def p_error(t):
     print("Whoa. We're hosed")
 
 if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
-    yacc.parse(sys.stdin.read(), lxr, debug=False)
+    yacc.parse(sys.stdin.read(),lxr,debug=False)
     print(symbols)

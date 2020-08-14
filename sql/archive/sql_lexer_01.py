@@ -7,7 +7,7 @@ import ply.lex as lex
 
 tokens = (
     'COMPARISON', 'INTNUM', 'STRING', 'COMMA',
-    'SELECT', 'FROM', 'WHERE', 'OR', 'AND',
+    'SELECT', 'FROM', 'WHERE', 'LIKE', 'OR', 'AND', 'NOT',
 )
 
 #start condition
