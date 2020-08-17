@@ -7,6 +7,8 @@ import ply.yacc as yacc
 import sql_lexer
 
 from sql_lexer import *
+from sql_interpreter import *
+
 tokens = sql_lexer.tokens
 
 # symbol table
@@ -78,9 +80,9 @@ def p_scalar_exp_list_2(p):
     pass
 
 def p_from_clause(p):
-    '''from_clause : FROM table_ref_list'''
+    '''from_clause : FROM table_ref'''
     symbols['from_clause'] = {
-            'table_ref_list' : sym_join('table_ref_list'),
+            'table_ref' : sym_join('table_ref'),
             }
     pass
 
@@ -94,18 +96,6 @@ def p_where_clause(p):
 def p_where_clause_empty(p):
     '''where_clause :'''
     symbols['where_clause'] = {}
-    pass
-
-def p_table_ref_list_1(p):
-    '''table_ref_list : table_ref'''
-    symbols['table_ref_list'] = [
-            sym_join('table_ref'),
-            ]
-    pass
-
-def p_table_ref_list_2(p):
-    '''table_ref_list : table_ref_list COMMA table_ref'''
-    symbols['table_ref_list'].append(sym_join('table_ref'))
     pass
 
 def p_table_ref(p):
@@ -226,5 +216,6 @@ if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
     yacc.parse(sys.stdin.read(), lxr, debug=False)
+    interpret(symbols)
     json_str = json.dumps(symbols)
     print(json_str)
