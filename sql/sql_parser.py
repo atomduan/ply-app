@@ -7,7 +7,7 @@ import ply.yacc as yacc
 import sql_lexer
 
 from sql_lexer import *
-from sql_interpreter import *
+from sql_handler import *
 
 tokens = sql_lexer.tokens
 
