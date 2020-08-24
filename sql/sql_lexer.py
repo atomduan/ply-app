@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 
 # https://www.dabeaz.com/ply/ply.html#ply_nn21
 
