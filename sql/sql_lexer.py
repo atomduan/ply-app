@@ -21,6 +21,7 @@ notation = {
     '='         :   'EQ',
     '('         :   'LP',
     ')'         :   'RP',
+    '*'         :   'ASTER',
 }
 
 tokens = [
@@ -62,7 +63,7 @@ def t_preprocessor(t):
 
 #token recognized 
 def t_NOTATION(t):
-    r'(=|;|,|\(|\))'
+    r'(=|;|,|\(|\)|\*)'
     t.type = notation.get(t.value.lower())
     return t
 

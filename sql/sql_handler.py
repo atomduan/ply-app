@@ -10,18 +10,15 @@ import sql_lexer
 def interpret(symbols):
     sql = symbols['sql']
     int_sql(symbols['sql'])
-    pass
 
 def int_sql(sql):
     statement_list = sql['statement_list']
     for statement in statement_list:
         int_statement(statement)
-        pass
 
 def int_statement(statement):
     select_stmt = statement['select_stmt']
     int_select_stmt(select_stmt)
-    pass
 
 def int_select_stmt(select_stmt):
     #1. gen load table
@@ -57,7 +54,8 @@ def int_select_stmt(select_stmt):
                 if int_predicate(prer, r):
                     filter_records.append(r)
 
-    #3. selecter field 
+    #3. selecter field
+    is_aster = False
     fields = []
     selection = select_stmt['selection']
     scalar_exp_list = selection['scalar_exp_list']
@@ -66,18 +64,22 @@ def int_select_stmt(select_stmt):
         s_type = scalar_unit['type']
         if s_type != 'name_ref':
             token = scalar_unit['token']
+            if s_type == 'ASTER':
+                is_aster = True
         else:
             name_ref = scalar_unit['name_ref']
             token = name_ref['token']
         fields.append(token)
-    
     result = []
     for record in filter_records:
-        fr = {}
-        for key in record:
-            if key in fields:
-                fr[key] = record[key] 
-        result.append(fr) 
+        if is_aster == False:
+            fr = {}
+            for key in record:
+                if key in fields:
+                    fr[key] = record[key]
+            result.append(fr)
+        else:
+            result.append(record)
 
     #4. output result
     print(result)
@@ -88,14 +90,14 @@ def int_predicate(pred, r):
     if c_type == 'EQ':
         scalar_exp_l = comparison_predicate['scalar_exp_l'],
         scalar_exp_r = comparison_predicate['scalar_exp_r'],
-        left_val = eval_scalar(scalar_exp_l, r)
-        right_val = eval_scalar(scalar_exp_r, r)
-        return left_val == right_val
-    return True 
+        lval = eval_scalar(scalar_exp_l, r)
+        rval = eval_scalar(scalar_exp_r, r)
+        return lval == rval
+    return True
 
 def eval_scalar(scalar_exp, record):
-    #TODO bughere why [0] ?
-    scalar_unit = scalar_exp[0]['scalar_unit'] 
+    #TODO bug here why [0] ?
+    scalar_unit = scalar_exp[0]['scalar_unit']
     s_type = scalar_unit['type']
     if s_type == 'NUM':
         s_token = scalar_unit['token']
@@ -127,4 +129,3 @@ def load_table(table_name, records):
                     r[meta[i]] = data[i]
                 records.append(r)
             count = count + 1
-    pass

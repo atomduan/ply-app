@@ -194,6 +194,14 @@ def p_scalar_unit_3(p):
             }
     pass
 
+def p_scalar_unit_4(p):
+    '''scalar_unit : ASTER'''
+    symbols['scalar_unit'] = {
+            'type'  : 'ASTER',
+            'token' : p.slice[1].value,
+            }
+    pass
+
 def p_name_ref_1(p):
     '''name_ref : ID'''
     symbols['name_ref'] = {
