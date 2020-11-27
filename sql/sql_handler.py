@@ -11,14 +11,17 @@ def interpret(symbols):
     sql = symbols['sql']
     int_sql(symbols['sql'])
 
+
 def int_sql(sql):
     statement_list = sql['statement_list']
     for statement in statement_list:
         int_statement(statement)
 
+
 def int_statement(statement):
     select_stmt = statement['select_stmt']
     int_select_stmt(select_stmt)
+
 
 def int_select_stmt(select_stmt):
     #1. gen load table
@@ -84,6 +87,7 @@ def int_select_stmt(select_stmt):
     #4. output result
     print(result)
 
+
 def int_predicate(pred, r):
     comparison_predicate = pred['comparison_predicate']
     c_type = comparison_predicate['type']
@@ -94,6 +98,7 @@ def int_predicate(pred, r):
         rval = eval_scalar(scalar_exp_r, r)
         return lval == rval
     return True
+
 
 def eval_scalar(scalar_exp, record):
     #TODO bug here why [0] ?
@@ -111,8 +116,10 @@ def eval_scalar(scalar_exp, record):
         return eval_record_val(idstr, record)
     return "ERR"
 
+
 def eval_record_val(idstr, recode):
     return recode[idstr]
+
 
 def load_table(table_name, records):
     count = 0

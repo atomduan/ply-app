@@ -158,7 +158,7 @@ def p_comparison_predicate(p):
     pass
 
 #Embedded Actions seen_${rule}
-def p_seen_scalar_exp (p):
+def p_seen_scalar_exp(p):
     '''seen_scalar_exp :'''
     symbols['seen_scalar_exp'] = sym_join('scalar_exp')
     pass
