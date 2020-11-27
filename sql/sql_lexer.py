@@ -91,7 +91,6 @@ if __name__ == '__main__':
     import re
     lexer = lex.lex(reflags=re.IGNORECASE)
     data = sys.stdin.read()
-
     lexer.input(data)
     while True:
         tok = lexer.token()
