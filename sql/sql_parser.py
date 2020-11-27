@@ -217,5 +217,5 @@ if __name__ == '__main__':
     yacc.yacc(debug=True)
     yacc.parse(sys.stdin.read(), lxr, debug=False)
     interpret(symbols)
-    json_str = json.dumps(symbols)
-    print(json_str)
+    #json_str = json.dumps(symbols)
+    #print(json_str)
