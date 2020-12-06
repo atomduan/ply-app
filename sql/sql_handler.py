@@ -101,7 +101,6 @@ def int_predicate(pred, r):
 
 
 def eval_scalar(scalar_exp, record):
-    #TODO bug here why [0] ?
     scalar_unit = scalar_exp['scalar_unit']
     s_type = scalar_unit['type']
     if s_type == 'NUM':
