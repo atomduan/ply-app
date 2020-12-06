@@ -92,8 +92,8 @@ def int_predicate(pred, r):
     comparison_predicate = pred['comparison_predicate']
     c_type = comparison_predicate['type']
     if c_type == 'EQ':
-        scalar_exp_l = comparison_predicate['scalar_exp_l'],
-        scalar_exp_r = comparison_predicate['scalar_exp_r'],
+        scalar_exp_l = comparison_predicate['scalar_exp_l']
+        scalar_exp_r = comparison_predicate['scalar_exp_r']
         lval = eval_scalar(scalar_exp_l, r)
         rval = eval_scalar(scalar_exp_r, r)
         return lval == rval
@@ -102,7 +102,7 @@ def int_predicate(pred, r):
 
 def eval_scalar(scalar_exp, record):
     #TODO bug here why [0] ?
-    scalar_unit = scalar_exp[0]['scalar_unit']
+    scalar_unit = scalar_exp['scalar_unit']
     s_type = scalar_unit['type']
     if s_type == 'NUM':
         s_token = scalar_unit['token']

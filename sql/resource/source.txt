@@ -6,4 +6,4 @@ select name from class where id=123 and name="asdsf adsf sssls ss";
 #select name from class where id=456 and name="asdsf adsf sssls ss";
 #select name from class where (id=123) and name="asdsf adsf sssls ss";
 #select id,name from class where id=2059;
-select * from class where id=2059;
+select name,id from class where id=2059 or id=2050;
