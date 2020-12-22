@@ -11,8 +11,7 @@ from sql_handler import *
 
 tokens = sql_lexer.tokens
 
-regs = {}
-instructions = []
+instrus = {}
 
 # Normally, the first rule found in a yacc 
 # specification defines the starting grammar 
@@ -42,11 +41,6 @@ def p_statement(p):
 
 def p_select_stmt(p):
     '''select_stmt : SELECT selection from_clause where_clause'''
-    instructions.append("LOAD_TRW REG_TPR" + " '" + str(regs['REG_TNM'] + "'"))
-    instructions.append("LOAD_FCL REG_FCL")
-    instructions.append("LOAD_TFC REG_TPR REG_CFP")
-    instructions.append("FILT_TBL REG_TPR REG_CFP")
-    instructions.append("TRUC_TBL REG_TPR")
     pass
 
 def p_selection_1(p):
@@ -63,7 +57,9 @@ def p_scalar_exp_list_2(p):
 
 def p_from_clause(p):
     '''from_clause : FROM table_ref'''
-    regs['REG_TNM'] = regs['TABLE_REF']
+    table_name = p[2]
+    inst = 'LDTB'+' '+table_name
+    instrus['from_clause'] = inst
     pass
 
 def p_where_clause(p):
@@ -76,7 +72,7 @@ def p_where_clause_empty(p):
 
 def p_table_ref(p):
     '''table_ref : name_ref'''
-    regs['TABLE_REF'] = regs['NAME_REF']
+    p[0] = p[1]
 
 def p_search_condition_1(p):
     '''search_condition : predicate'''
@@ -96,45 +92,48 @@ def p_predicate_1(p):
 
 def p_predicate_2(p):
     '''predicate : comparison_predicate'''
+    instrus['predicate'] = instrus['comparison_predicate']
     pass
 
 def p_comparison_predicate(p):
     '''comparison_predicate : scalar_exp EQ scalar_exp'''
-    pass
+    inst = ['COMP'+' '+str(p[1])+' '+str(p[2])]
+    instrus['comparison_predicate'] = inst
 
 def p_scalar_exp_8(p):
     '''scalar_exp : scalar_unit'''
-    pass
+    p[0] = p[1]
 
 def p_scalar_unit_1(p):
     '''scalar_unit : NUM'''
-    pass
+    p[0] = int(p[1])
 
 def p_scalar_unit_2(p):
     '''scalar_unit : STR'''
-    pass
+    p[0] = str(p[1])
 
 def p_scalar_unit_3(p):
     '''scalar_unit : name_ref'''
-    pass
+    p[0] = p[1]
 
 def p_scalar_unit_4(p):
     '''scalar_unit : ASTER'''
-    pass
+    p[0] = p[1]
 
 def p_name_ref_1(p):
     '''name_ref : ID'''
-    regs['NAME_REF'] = p.slice[1].value
-    pass
+    p[0] = str(p[1])
 
 def p_error(t):
     lineno = t.lexer.lineno
     column = t.lexer.lexpos - t.lexer.linepos - len(t.value) + 1
     print("[SYNTAX ERROR] pos:[%d,%d], token:[%s]" % (lineno, column, t))
 
+def instrus_shift(key):
+    tmp_instrus = instrus[key]
+    instrus[key] = 
+
 if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
     yacc.parse(sys.stdin.read(), lxr, debug=False)
-    for inst in instructions:
-        print(inst)
