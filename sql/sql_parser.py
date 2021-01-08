@@ -23,14 +23,16 @@ def p_sql(p):
     for i in p[0]:
         print(i)
 
-def p_statement_list_1(p):
-    '''statement_list : statement ';' '''
-    p[0] = p[1]
 
-def p_statement_list_2(p):
-    '''statement_list : statement_list statement ';' '''
-    p[0] = p[1]
-    p[0].extend(p[2])
+def p_statement_list(p):
+    '''statement_list : statement ';'
+                      | statement_list statement ';' '''
+    if len(p) == 3:
+        p[0] = p[1]
+    elif len(p) == 4:
+        p[0] = p[1]
+        p[0].extend(p[2])
+
 
 def p_statement(p):
     '''statement : select_stmt '''
@@ -57,19 +59,18 @@ def p_select_stmt(p):
     p[0].append('MVTB REG_TLB_TMP REG_TLB')
 
 
-def p_selection_1(p):
+def p_selection(p):
     '''selection : scalar_exp_list '''
     p[0] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
 
 
-def p_scalar_exp_list_1(p):
-    '''scalar_exp_list : scalar_exp '''
-    p[0] = str(p[1])
-
-
-def p_scalar_exp_list_2(p):
-    '''scalar_exp_list : scalar_exp_list ',' scalar_exp '''
-    p[0] = ''.join([p[1], ',', p[3]])
+def p_scalar_exp_list(p):
+    '''scalar_exp_list : scalar_exp
+                       | scalar_exp_list ',' scalar_exp '''
+    if len(p) == 2:
+        p[0] = str(p[1])
+    elif len(p) == 4:
+        p[0] = ''.join([p[1], ',', p[3]])
 
 
 def p_from_clause(p):
@@ -78,13 +79,12 @@ def p_from_clause(p):
 
 
 def p_where_clause(p):
-    '''where_clause : WHERE search_condition '''
-    p[0] = p[2]
-
-
-def p_where_clause_empty(p):
-    '''where_clause : empty '''
-    p[0] = ['EMPI']
+    '''where_clause : WHERE search_condition
+                    | empty '''
+    if len(p) == 3:
+        p[0] = p[2]
+    elif len(p) = 2:
+        p[0] = ['EMPI']
 
 
 def p_table_ref(p):
@@ -113,6 +113,7 @@ def p_search_condition(p):
 #Embedded Actions seen_${rule}
 def p_seen_predicate(p):
     '''seen_predicate : '''
+    #get context element from stack
     p[0] = p[-1]
 
 
