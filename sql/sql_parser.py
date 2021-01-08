@@ -7,11 +7,10 @@ import ply.yacc as yacc
 import sql_lexer
 
 from sql_lexer import *
-from sql_handler import *
 
 tokens = sql_lexer.tokens
 
-instrus = {}
+instructions = {}
 
 # Normally, the first rule found in a yacc 
 # specification defines the starting grammar 
@@ -20,161 +19,142 @@ instrus = {}
 start = 'sql'
 
 def p_sql(p):
-    '''sql : statement_list'''
-    instrus['sql'] = instrus_join('statement_list')
-    pass
+    '''sql : statement_list '''
+    instructions['sql'] = int_pop('statement_list')
+
 
 def p_sql_empty(p):
-    '''sql :'''
-    instrus['sql'] = ['EMPI']
-    pass
+    '''sql : empty '''
+    instructions['sql'] = ['EMPI']
+
 
 def p_statement_list_1(p):
-    '''statement_list : statement SEMI'''
-    instrus['statement_list'] = instrus_join('statement')
-    pass
+    '''statement_list : statement ';' '''
+    instructions['statement_list'] = int_pop('statement')
+
 
 def p_statement_list_2(p):
-    '''statement_list : statement_list statement SEMI'''
-    tmp_instrus = instrus_join('statement_list')
-    tmp_instrus.append(instrus_join('statement')) 
-    instrus['statement_list'] = tmp_instrus
+    '''statement_list : statement_list statement ';' '''
+    tmp_instructions = int_pop('statement_list')
+    tmp_instructions.append(int_pop('statement')) 
+    instructions['statement_list'] = tmp_instructions
     pass
 
 def p_statement(p):
-    '''statement : select_stmt'''
-    instrus['statement'] = instrus_join('select_stmt')
-    pass
+    '''statement : select_stmt '''
+    instructions['statement'] = int_pop('select_stmt')
+
 
 def p_select_stmt(p):
-    '''select_stmt : SELECT selection from_clause where_clause'''
+    '''select_stmt : SELECT selection from_clause where_clause '''
     # loading table
-    tmp_instrus = instrus_join('from_clause')
+    tmp_instructions = int_pop('from_clause')
     # loading selection
-    tmp_instrus.extend(instrus_join('selection'))
+    tmp_instructions.extend(int_pop('selection'))
     # loading recode
-    tmp_instrus.append('LDTB EMPTY REG_TLB_TMP') 
-    tmp_instrus.append('F_CHECK_LOOP:')
-    tmp_instrus.append('LTNX REG_TLB "F_EMPTY"') 
-    tmp_instrus.extend(instrus_join('where_clause'))
-    tmp_instrus.append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
+    tmp_instructions.append('LDTB EMPTY REG_TLB_TMP') 
+    tmp_instructions.append('F_CHECK_LOOP:')
+    tmp_instructions.append('LTNX REG_TLB "F_EMPTY"') 
+    tmp_instructions.extend(int_pop('where_clause'))
+    tmp_instructions.append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
     # trunk fileds
-    tmp_instrus.append('FLRC REG_RCD') 
-    tmp_instrus.append('ADRC REG_RCD REG_TLB_TMP') 
-    tmp_instrus.append('JUMP "F_CHECK_LOOP"') 
-    tmp_instrus.append('F_EMPTY:') 
-    tmp_instrus.append('MVTB REG_TLB_TMP REG_TLB')
-    instrus['select_stmt'] = tmp_instrus
-    pass
+    tmp_instructions.append('FLRC REG_RCD') 
+    tmp_instructions.append('ADRC REG_RCD REG_TLB_TMP') 
+    tmp_instructions.append('JUMP "F_CHECK_LOOP"') 
+    tmp_instructions.append('F_EMPTY:') 
+    tmp_instructions.append('MVTB REG_TLB_TMP REG_TLB')
+    instructions['select_stmt'] = tmp_instructions
+
 
 def p_selection_1(p):
-    '''selection : scalar_exp_list'''
-    instrus['selection'] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
-    pass
+    '''selection : scalar_exp_list '''
+    instructions['selection'] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
+
 
 def p_scalar_exp_list_1(p):
-    '''scalar_exp_list : scalar_exp'''
+    '''scalar_exp_list : scalar_exp '''
     p[0] = str(p[1])
-    pass
+
 
 def p_scalar_exp_list_2(p):
-    '''scalar_exp_list : scalar_exp_list COMMA scalar_exp'''
-    p[0] = str(p[1])+','+str(p[3])
-    pass
+    '''scalar_exp_list : scalar_exp_list ',' scalar_exp '''
+    p[0] = ''.join([p[1], ',', p[3]])
+
 
 def p_from_clause(p):
-    '''from_clause : FROM table_ref'''
+    '''from_clause : FROM table_ref '''
     table_name = p[2]
-    instrus['from_clause'] = ['LDTB'+' '+table_name+' '+'REG_TLB']
-    pass
+    instructions['from_clause'] = ['LDTB'+' "'+table_name+'" '+'REG_TLB']
+
 
 def p_where_clause(p):
-    '''where_clause : WHERE search_condition'''
-    instrus['where_clause'] = instrus_join('search_condition');
-    pass
+    '''where_clause : WHERE search_condition '''
+    instructions['where_clause'] = int_pop('search_condition');
+
 
 def p_where_clause_empty(p):
-    '''where_clause :'''
-    instrus['where_clause'] = ['EMPI']
-    pass
+    '''where_clause : empty '''
+    instructions['where_clause'] = ['EMPI']
+
 
 def p_table_ref(p):
-    '''table_ref : name_ref'''
+    '''table_ref : name_ref '''
     p[0] = p[1]
 
-def p_search_condition_1(p):
-    '''search_condition : predicate'''
-    instrus['search_condition'] = instrus_join('predicate')
-    pass
 
-def p_search_condition_2(p):
-    '''search_condition : predicate seen_predicate OR predicate'''
-    tmp_instrus = instrus_join('seen_predicate')
-    tmp_instrus.append('CHEK R_CMP 0 "F_FIN"') 
-    tmp_instrus.extend(instrus_join('predicate')) 
-    tmp_instrus.append('F_FIN:') 
-    instrus['search_condition'] = tmp_instrus
-    pass 
+def p_search_condition(p):
+    '''search_condition : predicate
+                        | predicate seen_predicate OR predicate
+                        | predicate seen_predicate AND predicate empty '''
+    if len(p) == 2: 
+        instructions['search_condition'] = int_pop('predicate')
+    elif len(p) == 5:
+        tmp_instructions = int_pop('seen_predicate')
+        tmp_instructions.append('CHEK R_CMP 0 "F_FIN"') 
+        tmp_instructions.extend(int_pop('predicate')) 
+        tmp_instructions.append('F_FIN:') 
+        instructions['search_condition'] = tmp_instructions
+    elif len(p) == 6:
+        tmp_instructions = int_pop('seen_predicate')
+        tmp_instructions.append('CHKN R_CMP 0 "F_FIN"') 
+        tmp_instructions.extend(int_pop('predicate')) 
+        tmp_instructions.append('F_FIN:') 
+        instructions['search_condition'] = tmp_instructions
 
-def p_search_condition_3(p):
-    '''search_condition : predicate seen_predicate AND predicate'''
-    tmp_instrus = instrus_join('seen_predicate')
-    tmp_instrus.append('CHKN R_CMP 0 "F_FIN"') 
-    tmp_instrus.extend(instrus_join('predicate')) 
-    tmp_instrus.append('F_FIN:') 
-    instrus['search_condition'] = tmp_instrus
-    pass 
 
 #Embedded Actions seen_${rule}
 def p_seen_predicate(p):
-    '''seen_predicate :'''
-    instrus['seen_predicate'] = instrus_join('predicate')
-    pass
+    '''seen_predicate : '''
+    instructions['seen_predicate'] = int_pop('predicate')
 
-def p_predicate_1(p):
-    '''predicate : LP predicate RP'''
-    instrus['predicate'] = instrus_join('predicate')
-    pass
 
-def p_predicate_2(p):
-    '''predicate : comparison_predicate'''
-    instrus['predicate'] = instrus_join('comparison_predicate')
-    pass
+def p_predicate(p):
+    '''predicate : '(' predicate ')'
+                 | scalar_exp '=' scalar_exp '''
+    if len(p) == 4: 
+        instructions['predicate'] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
 
-def p_comparison_predicate(p):
-    '''comparison_predicate : scalar_exp EQ scalar_exp'''
-    instrus['comparison_predicate'] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
-    pass
 
-def p_scalar_exp_8(p):
-    '''scalar_exp : scalar_unit'''
+def p_scalar_exp(p):
+    '''scalar_exp : scalar_unit '''
     p[0] = p[1]
-    pass
 
-def p_scalar_unit_1(p):
-    '''scalar_unit : NUM'''
-    p[0] = int(p[1])
-    pass
 
-def p_scalar_unit_2(p):
-    '''scalar_unit : STR'''
+def p_name_ref(p):
+    '''name_ref : scalar_unit ''' 
     p[0] = str(p[1])
-    pass
 
-def p_scalar_unit_3(p):
-    '''scalar_unit : name_ref'''
-    p[0] = p[1]
-    pass
 
-def p_scalar_unit_4(p):
-    '''scalar_unit : ASTER'''
-    p[0] = p[1]
-    pass
-
-def p_name_ref_1(p):
-    '''name_ref : ID'''
+def p_scalar_unit(p):
+    '''scalar_unit : NUM
+                   | STR
+                   | ID '''
     p[0] = str(p[1])
-    pass
+
+
+def p_empty(p):
+    '''empty : '''
+
 
 def p_error(t):
     lineno = t.lexer.lineno
@@ -182,14 +162,20 @@ def p_error(t):
     print("[SYNTAX ERROR] pos:[%d,%d], token:[%s]" % (lineno, column, t))
     pass
 
-def instrus_join(key):
-    tmp_instrus = instrus[key]
-    del instrus[key]
-    return tmp_instrus; 
+
+def int_pop(key):
+    tmp_instructions = instructions[key]
+    del instructions[key]
+    return tmp_instructions; 
+
+
+def interprete(instructions):
+    for ins in instructions['sql']:
+        print(ins)
+
 
 if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
-    yacc.parse(sys.stdin.read(), lxr, debug=False)
-    for ins in instrus['sql']:
-        print(ins)
+    yacc.parse(sys.stdin.read(), lxr, debug=True)
+    interprete(instructions);

@@ -15,25 +15,15 @@ reserved = {
     'and'       :   'AND',
 }
 
-notation = {
-    ';'         :   'SEMI',
-    ','         :   'COMMA',
-    '='         :   'EQ',
-    '('         :   'LP',
-    ')'         :   'RP',
-    '*'         :   'ASTER',
-}
+literals = [';', ',', '=', '(', ')', '+', '-', '*', '/']
 
-tokens = [
-    'ID', 'NUM', 'STR',
-] + list(reserved.values()) + list(notation.values())
+tokens = [ 'ID', 'NUM', 'STR', ] + list(reserved.values())
 
 #start condition
 states = (
     ('strsc', 'exclusive'),
 )
 
-t_COMMA         = r';'
 t_strsc_ignore  = r''
 t_ignore        = ' \t'
 
@@ -41,12 +31,14 @@ t_ignore        = ' \t'
 def t_begin_strsc(t):
     r'\"'
     t.lexer.begin('strsc')
+
 def t_strsc_STRCTNT(t):
     r'[^\"]+'
     t.type = 'STR'
     t.lexer.lineno += t.value.count('\n')
     t.lexer.linepos = t.lexer.lexpos + t.value.count('\n')
     return t
+
 def t_strsc_end(t):
     r'\"'
     t.lexer.begin('INITIAL')
@@ -60,12 +52,6 @@ def t_comment(t):
 def t_preprocessor(t):
     r'\#(.)*?\n'
     t.lexer.lineno += 1
-
-#token recognized 
-def t_NOTATION(t):
-    r'(=|;|,|\(|\)|\*)'
-    t.type = notation.get(t.value.lower())
-    return t
 
 def t_NUM(t):
     r'\d+'
