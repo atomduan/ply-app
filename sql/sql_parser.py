@@ -10,7 +10,7 @@ from sql_lexer import *
 
 tokens = sql_lexer.tokens
 
-instructions = {}
+instrs = {}
 
 # Normally, the first rule found in a yacc 
 # specification defines the starting grammar 
@@ -20,29 +20,29 @@ start = 'sql'
 
 def p_sql(p):
     '''sql : statement_list '''
-    instructions['sql'] = int_pop('statement_list')
+    instrs['sql'] = int_pop('statement_list')
 
 
 def p_sql_empty(p):
     '''sql : empty '''
-    instructions['sql'] = ['EMPI']
+    instrs['sql'] = ['EMPI']
 
 
 def p_statement_list_1(p):
     '''statement_list : statement ';' '''
-    instructions['statement_list'] = int_pop('statement')
+    instrs['statement_list'] = int_pop('statement')
 
 
 def p_statement_list_2(p):
     '''statement_list : statement_list statement ';' '''
     tmp_int = int_pop('statement_list')
     tmp_int.append(int_pop('statement')) 
-    instructions['statement_list'] = tmp_int
+    instrs['statement_list'] = tmp_int
     pass
 
 def p_statement(p):
     '''statement : select_stmt '''
-    instructions['statement'] = int_pop('select_stmt')
+    instrs['statement'] = int_pop('select_stmt')
 
 
 def p_select_stmt(p):
@@ -63,12 +63,12 @@ def p_select_stmt(p):
     tmp_int.append('JUMP "F_CHECK_LOOP"') 
     tmp_int.append('F_EMPTY:') 
     tmp_int.append('MVTB REG_TLB_TMP REG_TLB')
-    instructions['select_stmt'] = tmp_int
+    instrs['select_stmt'] = tmp_int
 
 
 def p_selection_1(p):
     '''selection : scalar_exp_list '''
-    instructions['selection'] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
+    instrs['selection'] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
 
 
 def p_scalar_exp_list_1(p):
@@ -84,17 +84,17 @@ def p_scalar_exp_list_2(p):
 def p_from_clause(p):
     '''from_clause : FROM table_ref '''
     table_name = p[2]
-    instructions['from_clause'] = ['LDTB'+' "'+table_name+'" '+'REG_TLB']
+    instrs['from_clause'] = ['LDTB'+' "'+table_name+'" '+'REG_TLB']
 
 
 def p_where_clause(p):
     '''where_clause : WHERE search_condition '''
-    instructions['where_clause'] = int_pop('search_condition');
+    instrs['where_clause'] = int_pop('search_condition');
 
 
 def p_where_clause_empty(p):
     '''where_clause : empty '''
-    instructions['where_clause'] = ['EMPI']
+    instrs['where_clause'] = ['EMPI']
 
 
 def p_table_ref(p):
@@ -107,32 +107,32 @@ def p_search_condition(p):
                         | predicate seen_predicate OR predicate
                         | predicate seen_predicate AND predicate empty '''
     if len(p) == 2: 
-        instructions['search_condition'] = int_pop('predicate')
+        instrs['search_condition'] = int_pop('predicate')
     elif len(p) == 5:
         tmp_int = int_pop('seen_predicate')
         tmp_int.append('CHEK R_CMP 0 "F_FIN"') 
         tmp_int.extend(int_pop('predicate')) 
         tmp_int.append('F_FIN:') 
-        instructions['search_condition'] = tmp_int
+        instrs['search_condition'] = tmp_int
     elif len(p) == 6:
         tmp_int = int_pop('seen_predicate')
         tmp_int.append('CHKN R_CMP 0 "F_FIN"') 
         tmp_int.extend(int_pop('predicate')) 
         tmp_int.append('F_FIN:') 
-        instructions['search_condition'] = tmp_int
+        instrs['search_condition'] = tmp_int
 
 
 #Embedded Actions seen_${rule}
 def p_seen_predicate(p):
     '''seen_predicate : '''
-    instructions['seen_predicate'] = int_pop('predicate')
+    instrs['seen_predicate'] = int_pop('predicate')
 
 
 def p_predicate(p):
     '''predicate : '(' predicate ')'
                  | scalar_exp '=' scalar_exp '''
     if len(p) == 4: 
-        instructions['predicate'] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
+        instrs['predicate'] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
 
 
 def p_scalar_exp(p):
@@ -164,13 +164,13 @@ def p_error(t):
 
 
 def int_pop(key):
-    tmp_int = instructions[key]
-    del instructions[key]
+    tmp_int = instrs[key]
+    del instrs[key]
     return tmp_int; 
 
 
-def interprete(instructions):
-    for ins in instructions['sql']:
+def interprete(instrs):
+    for ins in instrs['sql']:
         print(ins)
 
 
@@ -178,4 +178,4 @@ if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
     yacc.parse(sys.stdin.read(), lxr, debug=True)
-    interprete(instructions);
+    interprete(instrs);
