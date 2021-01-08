@@ -10,8 +10,6 @@ from sql_lexer import *
 
 tokens = sql_lexer.tokens
 
-instrs = {}
-
 # Normally, the first rule found in a yacc 
 # specification defines the starting grammar 
 # rule (top level rule). To change this, simply 
@@ -19,56 +17,49 @@ instrs = {}
 start = 'sql'
 
 def p_sql(p):
-    '''sql : statement_list '''
-    instrs['sql'] = int_pop('statement_list')
-
-
-def p_sql_empty(p):
-    '''sql : empty '''
-    instrs['sql'] = ['EMPI']
-
+    '''sql : statement_list
+           | empty '''
+    p[0] = p[1]
+    for i in p[0]:
+        print(i)
 
 def p_statement_list_1(p):
     '''statement_list : statement ';' '''
-    instrs['statement_list'] = int_pop('statement')
-
+    p[0] = p[1]
 
 def p_statement_list_2(p):
     '''statement_list : statement_list statement ';' '''
-    tmp_int = int_pop('statement_list')
-    tmp_int.append(int_pop('statement')) 
-    instrs['statement_list'] = tmp_int
-    pass
+    p[0] = p[1]
+    p[0].extend(p[2])
 
 def p_statement(p):
     '''statement : select_stmt '''
-    instrs['statement'] = int_pop('select_stmt')
+    p[0] = p[1]
 
 
 def p_select_stmt(p):
     '''select_stmt : SELECT selection from_clause where_clause '''
     # loading table
-    tmp_int = int_pop('from_clause')
+    p[0] = p[3]
     # loading selection
-    tmp_int.extend(int_pop('selection'))
+    p[0].extend(p[2])
     # loading recode
-    tmp_int.append('LDTB EMPTY REG_TLB_TMP') 
-    tmp_int.append('F_CHECK_LOOP:')
-    tmp_int.append('LTNX REG_TLB "F_EMPTY"') 
-    tmp_int.extend(int_pop('where_clause'))
-    tmp_int.append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
+    p[0].append('LDTB EMPTY REG_TLB_TMP') 
+    p[0].append('F_CHECK_LOOP:')
+    p[0].append('LTNX REG_TLB "F_EMPTY"') 
+    p[0].extend(p[4])
+    p[0].append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
     # trunk fileds
-    tmp_int.append('FLRC REG_RCD') 
-    tmp_int.append('ADRC REG_RCD REG_TLB_TMP') 
-    tmp_int.append('JUMP "F_CHECK_LOOP"') 
-    tmp_int.append('F_EMPTY:') 
-    tmp_int.append('MVTB REG_TLB_TMP REG_TLB')
-    instrs['select_stmt'] = tmp_int
+    p[0].append('FLRC REG_RCD') 
+    p[0].append('ADRC REG_RCD REG_TLB_TMP') 
+    p[0].append('JUMP "F_CHECK_LOOP"') 
+    p[0].append('F_EMPTY:') 
+    p[0].append('MVTB REG_TLB_TMP REG_TLB')
 
 
 def p_selection_1(p):
     '''selection : scalar_exp_list '''
-    instrs['selection'] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
+    p[0] = ['MREG'+' '+'REG_SEL'+' '+'"'+str(p[1])+'"']
 
 
 def p_scalar_exp_list_1(p):
@@ -83,18 +74,17 @@ def p_scalar_exp_list_2(p):
 
 def p_from_clause(p):
     '''from_clause : FROM table_ref '''
-    table_name = p[2]
-    instrs['from_clause'] = ['LDTB'+' "'+table_name+'" '+'REG_TLB']
+    p[0] = [''.join(['LDTB', ' "', p[2], '" ', 'REG_TLB'])]
 
 
 def p_where_clause(p):
     '''where_clause : WHERE search_condition '''
-    instrs['where_clause'] = int_pop('search_condition');
+    p[0] = p[2]
 
 
 def p_where_clause_empty(p):
     '''where_clause : empty '''
-    instrs['where_clause'] = ['EMPI']
+    p[0] = ['EMPI']
 
 
 def p_table_ref(p):
@@ -107,32 +97,30 @@ def p_search_condition(p):
                         | predicate seen_predicate OR predicate
                         | predicate seen_predicate AND predicate empty '''
     if len(p) == 2: 
-        instrs['search_condition'] = int_pop('predicate')
+        p[0] = p[1]
     elif len(p) == 5:
-        tmp_int = int_pop('seen_predicate')
-        tmp_int.append('CHEK R_CMP 0 "F_FIN"') 
-        tmp_int.extend(int_pop('predicate')) 
-        tmp_int.append('F_FIN:') 
-        instrs['search_condition'] = tmp_int
+        p[0] = p[2]
+        p[0].append('CHEK R_CMP 0 "F_FIN"') 
+        p[0].extend(p[1]) 
+        p[0].append('F_FIN:') 
     elif len(p) == 6:
-        tmp_int = int_pop('seen_predicate')
-        tmp_int.append('CHKN R_CMP 0 "F_FIN"') 
-        tmp_int.extend(int_pop('predicate')) 
-        tmp_int.append('F_FIN:') 
-        instrs['search_condition'] = tmp_int
+        p[0] = p[2]
+        p[0].append('CHKN R_CMP 0 "F_FIN"') 
+        p[0].extend(p[1]) 
+        p[0].append('F_FIN:') 
 
 
 #Embedded Actions seen_${rule}
 def p_seen_predicate(p):
     '''seen_predicate : '''
-    instrs['seen_predicate'] = int_pop('predicate')
+    p[0] = p[-1]
 
 
 def p_predicate(p):
     '''predicate : '(' predicate ')'
                  | scalar_exp '=' scalar_exp '''
     if len(p) == 4: 
-        instrs['predicate'] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
+        p[0] = ['COMP'+' '+str(p[1])+' '+str(p[3])]
 
 
 def p_scalar_exp(p):
@@ -163,19 +151,7 @@ def p_error(t):
     pass
 
 
-def int_pop(key):
-    tmp_int = instrs[key]
-    del instrs[key]
-    return tmp_int; 
-
-
-def interprete(instrs):
-    for ins in instrs['sql']:
-        print(ins)
-
-
 if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
-    yacc.parse(sys.stdin.read(), lxr, debug=True)
-    interprete(instrs);
+    yacc.parse(sys.stdin.read(), lxr, debug=False)
