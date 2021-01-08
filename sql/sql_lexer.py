@@ -15,6 +15,7 @@ reserved = {
     'and'       :   'AND',
 }
 
+#output directly as literial token, do not need to define t_* rules
 literals = [';', ',', '=', '(', ')', '+', '-', '*', '/']
 
 tokens = [ 'ID', 'NUM', 'STR', ] + list(reserved.values())

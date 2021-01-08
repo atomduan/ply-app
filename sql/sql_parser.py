@@ -35,9 +35,9 @@ def p_statement_list_1(p):
 
 def p_statement_list_2(p):
     '''statement_list : statement_list statement ';' '''
-    tmp_instructions = int_pop('statement_list')
-    tmp_instructions.append(int_pop('statement')) 
-    instructions['statement_list'] = tmp_instructions
+    tmp_int = int_pop('statement_list')
+    tmp_int.append(int_pop('statement')) 
+    instructions['statement_list'] = tmp_int
     pass
 
 def p_statement(p):
@@ -48,22 +48,22 @@ def p_statement(p):
 def p_select_stmt(p):
     '''select_stmt : SELECT selection from_clause where_clause '''
     # loading table
-    tmp_instructions = int_pop('from_clause')
+    tmp_int = int_pop('from_clause')
     # loading selection
-    tmp_instructions.extend(int_pop('selection'))
+    tmp_int.extend(int_pop('selection'))
     # loading recode
-    tmp_instructions.append('LDTB EMPTY REG_TLB_TMP') 
-    tmp_instructions.append('F_CHECK_LOOP:')
-    tmp_instructions.append('LTNX REG_TLB "F_EMPTY"') 
-    tmp_instructions.extend(int_pop('where_clause'))
-    tmp_instructions.append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
+    tmp_int.append('LDTB EMPTY REG_TLB_TMP') 
+    tmp_int.append('F_CHECK_LOOP:')
+    tmp_int.append('LTNX REG_TLB "F_EMPTY"') 
+    tmp_int.extend(int_pop('where_clause'))
+    tmp_int.append('CHKN R_CMP 0 "F_CHECK_LOOP"') 
     # trunk fileds
-    tmp_instructions.append('FLRC REG_RCD') 
-    tmp_instructions.append('ADRC REG_RCD REG_TLB_TMP') 
-    tmp_instructions.append('JUMP "F_CHECK_LOOP"') 
-    tmp_instructions.append('F_EMPTY:') 
-    tmp_instructions.append('MVTB REG_TLB_TMP REG_TLB')
-    instructions['select_stmt'] = tmp_instructions
+    tmp_int.append('FLRC REG_RCD') 
+    tmp_int.append('ADRC REG_RCD REG_TLB_TMP') 
+    tmp_int.append('JUMP "F_CHECK_LOOP"') 
+    tmp_int.append('F_EMPTY:') 
+    tmp_int.append('MVTB REG_TLB_TMP REG_TLB')
+    instructions['select_stmt'] = tmp_int
 
 
 def p_selection_1(p):
@@ -109,17 +109,17 @@ def p_search_condition(p):
     if len(p) == 2: 
         instructions['search_condition'] = int_pop('predicate')
     elif len(p) == 5:
-        tmp_instructions = int_pop('seen_predicate')
-        tmp_instructions.append('CHEK R_CMP 0 "F_FIN"') 
-        tmp_instructions.extend(int_pop('predicate')) 
-        tmp_instructions.append('F_FIN:') 
-        instructions['search_condition'] = tmp_instructions
+        tmp_int = int_pop('seen_predicate')
+        tmp_int.append('CHEK R_CMP 0 "F_FIN"') 
+        tmp_int.extend(int_pop('predicate')) 
+        tmp_int.append('F_FIN:') 
+        instructions['search_condition'] = tmp_int
     elif len(p) == 6:
-        tmp_instructions = int_pop('seen_predicate')
-        tmp_instructions.append('CHKN R_CMP 0 "F_FIN"') 
-        tmp_instructions.extend(int_pop('predicate')) 
-        tmp_instructions.append('F_FIN:') 
-        instructions['search_condition'] = tmp_instructions
+        tmp_int = int_pop('seen_predicate')
+        tmp_int.append('CHKN R_CMP 0 "F_FIN"') 
+        tmp_int.extend(int_pop('predicate')) 
+        tmp_int.append('F_FIN:') 
+        instructions['search_condition'] = tmp_int
 
 
 #Embedded Actions seen_${rule}
@@ -164,9 +164,9 @@ def p_error(t):
 
 
 def int_pop(key):
-    tmp_instructions = instructions[key]
+    tmp_int = instructions[key]
     del instructions[key]
-    return tmp_instructions; 
+    return tmp_int; 
 
 
 def interprete(instructions):
