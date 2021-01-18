@@ -10,6 +10,7 @@ from sql_lexer import *
 
 tokens = sql_lexer.tokens
 
+
 # Normally, the first rule found in a yacc 
 # specification defines the starting grammar 
 # rule (top level rule). To change this, simply 
@@ -20,9 +21,6 @@ def p_sql(p):
     '''sql : statement_list
            | empty '''
     p[0] = p[1]
-    for i in p[0]:
-        print(i)
-
 
 def p_statement_list(p):
     '''statement_list : statement ';'
@@ -83,7 +81,7 @@ def p_where_clause(p):
                     | empty '''
     if len(p) == 3:
         p[0] = p[2]
-    elif len(p) = 2:
+    elif len(p) == 2:
         p[0] = ['EMPI']
 
 
@@ -95,15 +93,15 @@ def p_table_ref(p):
 def p_search_condition(p):
     '''search_condition : predicate
                         | predicate seen_predicate OR predicate
-                        | predicate seen_predicate AND predicate empty '''
+                        | predicate seen_predicate AND predicate '''
     if len(p) == 2: 
         p[0] = p[1]
-    elif len(p) == 5:
+    elif p[3] == 'OR':
         p[0] = p[2]
         p[0].append('CHEK R_CMP 0 "F_FIN"') 
         p[0].extend(p[1]) 
         p[0].append('F_FIN:') 
-    elif len(p) == 6:
+    elif p[3] == 'AND':
         p[0] = p[2]
         p[0].append('CHKN R_CMP 0 "F_FIN"') 
         p[0].extend(p[1]) 
@@ -149,10 +147,12 @@ def p_error(t):
     lineno = t.lexer.lineno
     column = t.lexer.lexpos - t.lexer.linepos - len(t.value) + 1
     print("[SYNTAX ERROR] pos:[%d,%d], token:[%s]" % (lineno, column, t))
-    pass
 
 
 if __name__ == '__main__':
     lxr = lex.lex()
     yacc.yacc(debug=True)
-    yacc.parse(sys.stdin.read(), lxr, debug=False)
+    sql = yacc.parse(sys.stdin.read(), lxr, debug=False)
+    if sql is not None:
+        for instruction in sql:
+            print(instruction)

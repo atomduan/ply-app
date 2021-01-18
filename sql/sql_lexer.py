@@ -7,18 +7,12 @@ import ply.lex as lex
 
 last_line_pos = 0
 
-reserved = {
-    'select'    :   'SELECT',
-    'from'      :   'FROM',
-    'where'     :   'WHERE',
-    'or'        :   'OR',
-    'and'       :   'AND',
-}
+reserved = ['SELECT', 'FROM', 'WHERE', 'OR', 'AND']
 
 #output directly as literial token, do not need to define t_* rules
 literals = [';', ',', '=', '(', ')', '+', '-', '*', '/']
 
-tokens = [ 'ID', 'NUM', 'STR', ] + list(reserved.values())
+tokens = [ 'ID', 'NUM', 'STR', ] + reserved
 
 #start condition
 states = (
@@ -53,6 +47,7 @@ def t_comment(t):
 def t_preprocessor(t):
     r'\#(.)*?\n'
     t.lexer.lineno += 1
+    t.lexer.linepos = t.lexer.lexpos + t.value.count('\n')
 
 def t_NUM(t):
     r'\d+'
@@ -62,7 +57,10 @@ def t_NUM(t):
 
 def t_ID(t):
     r'[a-zA-Z0-9_]+'
-    t.type = reserved.get(t.value.lower(), 'ID')
+    if t.value.upper() in reserved:
+        t.type = t.value = t.value.upper() 
+    else:
+        t.type = 'ID'
     return t
 
 def t_newline(t):
