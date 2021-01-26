@@ -22,6 +22,7 @@ def p_sql(p):
            | empty '''
     p[0] = p[1]
 
+
 def p_statement_list(p):
     '''statement_list : statement ';'
                       | statement_list statement ';' '''
@@ -92,27 +93,20 @@ def p_table_ref(p):
 
 def p_search_condition(p):
     '''search_condition : predicate
-                        | predicate seen_predicate OR predicate
-                        | predicate seen_predicate AND predicate '''
+                        | predicate OR predicate
+                        | predicate AND predicate '''
     if len(p) == 2: 
         p[0] = p[1]
-    elif p[3] == 'OR':
-        p[0] = p[2]
+    elif p[2] == 'OR':
+        p[0] = p[1]
         p[0].append('CHEK R_CMP 0 "F_FIN"') 
         p[0].extend(p[1]) 
         p[0].append('F_FIN:') 
-    elif p[3] == 'AND':
-        p[0] = p[2]
+    elif p[2] == 'AND':
+        p[0] = p[1]
         p[0].append('CHKN R_CMP 0 "F_FIN"') 
         p[0].extend(p[1]) 
         p[0].append('F_FIN:') 
-
-
-#Embedded Actions seen_${rule}
-def p_seen_predicate(p):
-    '''seen_predicate : '''
-    #get context element from stack
-    p[0] = p[-1]
 
 
 def p_predicate(p):
