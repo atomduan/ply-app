@@ -8,3 +8,4 @@ select name from class where id=123 and name="asdsf adsf sssls ss";
 #select id,name from class where id=2059;
 select name,id from class where id=2077 and id=2111;
 select name,id from class where id=2059 or id=2050;
+select name,id from class where id=1111 or id=33333;

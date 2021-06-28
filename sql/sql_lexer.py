@@ -51,14 +51,14 @@ def t_preprocessor(t):
 
 def t_NUM(t):
     r'\d+'
-    t.value = int(t.value)    
+    t.value = int(t.value)
     t.type = 'NUM'
     return t
 
 def t_ID(t):
     r'[a-zA-Z0-9_]+'
     if t.value.upper() in reserved:
-        t.type = t.value = t.value.upper() 
+        t.type = t.value = t.value.upper()
     else:
         t.type = 'ID'
     return t
